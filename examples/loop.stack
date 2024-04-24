@@ -1,0 +1,11 @@
+step {
+
+} def
+
+# `<counter> <end> <code> loop`
+loop {
+
+} def
+
+# print every number from 0 to 10
+0 10 { dup println } loop
