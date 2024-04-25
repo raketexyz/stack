@@ -74,9 +74,9 @@ pub fn list(input: &str) -> IResult<&str, Box<[Expression]>> {
 
 pub fn definition(input: &str) -> IResult<&str, Statement> {
     context("Definition", preceded(
-        tag("def"),
+        pair(tag("def"), multispace1),
         cut(pair(
-            Parser::into(preceded(multispace1, identifier)),
+            Parser::into(identifier),
             preceded(multispace0, procedure)
         )),
     ))
