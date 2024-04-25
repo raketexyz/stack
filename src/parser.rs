@@ -117,7 +117,7 @@ pub fn builtin(input: &str) -> IResult<&str, Builtin> {
         value(Builtin::Dup2, tag("2dup")),
         value(Builtin::Keep, tag("keep")),
         value(Builtin::Println, tag("println")),
-        value(Builtin::If, tag("?")),
+        value(Builtin::If, tag("if")),
         value(Builtin::Nth, tag("nth")),
     )))(input)
 }
@@ -194,7 +194,7 @@ mod tests {
         assert_eq!(builtin("keep"), Ok(("", Builtin::Keep)));
         assert_eq!(builtin("eval"), Ok(("", Builtin::Eval)));
         assert_eq!(builtin("println"), Ok(("", Builtin::Println)));
-        assert_eq!(builtin("?"), Ok(("", Builtin::If)));
+        assert_eq!(builtin("if"), Ok(("", Builtin::If)));
         assert_eq!(builtin("nth"), Ok(("", Builtin::Nth)));
     }
 

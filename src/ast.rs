@@ -166,7 +166,7 @@ impl Builtin {
             Self::Keep => "keep",
             Self::Eval => "eval",
             Self::Println => "println",
-            Self::If => "?",
+            Self::If => "if",
             Self::Nth => "nth",
             Self::Dup2 => "2dup",
         }

@@ -1,17 +1,14 @@
 # a -- fib(a)
 def fib {
-    # Don't do anything for 1 (is it's own fibonacci number)
-    dup 1 = {} {
-        # Don't do anything for 0 (is it's own fibonacci number)
-        dup 0 = {} {
-            # a -- a fib(a - 1)
-            dup 1 - fib
-            # a fib(a - 1) -- fib(a - 1) fib(a - 2)
-            swap 2 - fib
-            # fib(a - 1) fib(a - 2) -- fib(a)
-            +
-        } ?
-    } ?
+    # Don't do anything for 1 and 0 (is it's own fibonacci number)
+    dup 1 <= {} {
+        # a -- a fib(a - 1)
+        dup 1 - fib
+        # a fib(a - 1) -- fib(a - 1) fib(a - 2)
+        swap 2 - fib
+        # fib(a - 1) fib(a - 2) -- fib(a)
+        +
+    } if
 }
 
 def loop {
@@ -21,7 +18,7 @@ def loop {
         dup fib println
         # Call loop with incremented counter
         1 + loop
-    } ?
+    } if
 }
 
 # Start loop with counter 0
