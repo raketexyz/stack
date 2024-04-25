@@ -1,5 +1,7 @@
 use std::fmt::Display;
 
+use crate::Value;
+
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub struct Program {
     pub statements: Box<[Statement]>,
@@ -9,6 +11,7 @@ pub struct Program {
 pub enum Statement {
     Expression(Expression),
     Builtin(Builtin),
+    Value(Value),
 }
 
 impl Display for Statement {
@@ -16,6 +19,7 @@ impl Display for Statement {
         match self {
             Self::Expression(s) => write!(f, "{s}"),
             Self::Builtin(s) => write!(f, "{s}"),
+            Self::Value(v) => write!(f, "{v}"),
         }
     }
 }
@@ -105,6 +109,8 @@ pub enum Builtin {
     Over,
     /// `x y -- x x y`
     Dupd,
+    /// Evaluate a procedure and restore the top element on the stack.
+    Keep,
     /// Evaluate the top element on the stack.
     Eval,
     /// Print the top element on the stack and append a newline.
@@ -134,6 +140,7 @@ impl Builtin {
             Self::Drop => "drop",
             Self::Over => "over",
             Self::Dupd => "dupd",
+            Self::Keep => "keep",
             Self::Eval => "eval",
             Self::Println => "println",
             Self::If => "?",

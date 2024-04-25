@@ -1,6 +1,6 @@
 use std::collections::{HashMap, VecDeque};
 
-use crate::{Builtin, Expression, Program, Statement, Value};
+use crate::{Builtin, Expression, Procedure, Program, Statement, Value};
 
 type Result<A> = std::result::Result<A, String>;
 
@@ -53,6 +53,7 @@ impl Interpreter {
         match statement {
             Statement::Expression(e) => self.push(self.evaluate_expression(e)?),
             Statement::Builtin(b) => self.evaluate_builtin(b),
+            Statement::Value(v) => self.push(v),
         }
     }
 
@@ -78,6 +79,7 @@ impl Interpreter {
             Builtin::Drop => self.drop(),
             Builtin::Over => self.over(),
             Builtin::Dupd => self.dupd(),
+            Builtin::Keep => self.keep(),
             Builtin::Eval => self.eval(),
             Builtin::Println => self.println(),
             Builtin::If => self.evaluate_if(),
@@ -85,38 +87,45 @@ impl Interpreter {
         }
     }
 
-    fn def(&mut self) -> Result<()> {
-        self.expect_args(2, "def")?;
-
-        let (value, name) = (self.pop()?, self.pop()?);
-
-        if let Value::Identifier(s) = name {
-            self.definitions.insert(s, value);
-            Ok(())
-        } else {
-            Err(format!("Expected string for definition, got {name}"))
-        }
-    }
-
-    fn evaluate_if(&mut self) -> Result<()> {
-        self.expect_args(3, "?")?;
-
-        let (esle, then, cond) = (self.pop()?, self.pop()?, self.pop()?);
-        let t = if cond == Value::Bool(true) { then } else { esle };
-
-        match t {
-            Value::Procedure(s) => {
-                self.prepend_statements(&s.0);
-                Ok(())
-            },
-            _ => Err(format!("Can't evaluate {t}"))
-        }
-    }
-
     fn prepend_statements(&mut self, statements: &[Statement]) {
         self.statements = VecDeque::from_iter(
             statements.iter().cloned().chain(self.statements.iter().cloned())
         );
+    }
+
+    fn add(&mut self) -> Result<()> {
+        self.expect_args(2, "+")?;
+
+        let (b, a) = (self.pop()?, self.pop()?);
+        let s = (self.resolve(a)? + self.resolve(b)?)?;
+
+        self.push(s)
+    }
+
+    fn sub(&mut self) -> Result<()> {
+        self.expect_args(2, "-")?;
+
+        let (b, a) = (self.pop()?, self.pop()?);
+        let s = (self.resolve(a)? - self.resolve(b)?)?;
+
+        self.push(s)
+    }
+
+    fn mul(&mut self) -> Result<()> {
+        self.expect_args(2, "*")?;
+
+        let (b, a) = (self.pop()?, self.pop()?);
+        let s = (self.resolve(a)? * self.resolve(b)?)?;
+
+        self.push(s)
+    }
+
+    fn div(&mut self) -> Result<()> {
+        self.expect_args(2, "/")?;
+
+        let (b, a) = (self.pop()?, self.pop()?);
+
+        self.push((self.resolve(a)? / self.resolve(b)?)?)
     }
 
     fn eq(&mut self) -> Result<()> {
@@ -168,6 +177,14 @@ impl Interpreter {
         self.push(Value::Bool(a >= b))
     }
 
+    fn dup(&mut self) -> Result<()> {
+        self.expect_args(1, "dup")?;
+
+        let s = self.stack.last().unwrap();
+
+        self.push(s.clone())
+    }
+
     fn swap(&mut self) -> Result<()> {
         self.expect_args(2, "swap")?;
 
@@ -176,31 +193,6 @@ impl Interpreter {
         self.stack.swap(n - 1, n - 2);
 
         Ok(())
-    }
-
-    /// Pops a value, dereferences it, takes it as a procedure and prepends the
-    /// contained statements to the statement buffer.
-    fn eval(&mut self) -> Result<()> {
-        self.expect_args(1, "eval")?;
-
-        let a = self.pop()?;
-
-        let procedure = match self.resolve(a)? {
-            Value::Procedure(s) => Ok(s),
-            v => Err(format!("Can't evaluate {v}"))
-        }?;
-
-        self.prepend_statements(&procedure.0);
-
-        Ok(())
-    }
-
-    fn dup(&mut self) -> Result<()> {
-        self.expect_args(1, "dup")?;
-
-        let s = self.stack.last().unwrap();
-
-        self.push(s.clone())
     }
 
     fn drop(&mut self) -> Result<()> {
@@ -228,39 +220,75 @@ impl Interpreter {
         Ok(())
     }
 
-    fn add(&mut self) -> Result<()> {
-        self.expect_args(2, "+")?;
+    fn keep(&mut self) -> Result<()> {
+        self.expect_args(2, "keep")?;
 
-        let (b, a) = (self.pop()?, self.pop()?);
-        let s = (self.resolve(a)? + self.resolve(b)?)?;
+        let (b, a) = (self.pop()?, self.stack.last().unwrap().clone());
 
-        self.push(s)
+        match b {
+            Value::Procedure(Procedure(s)) => {
+                self.statements.push_front(Statement::Value(a));
+                self.prepend_statements(&s);
+                Ok(())
+            }
+            _ => Err(format!("Can't evaluate {b}"))
+        }
     }
 
-    fn sub(&mut self) -> Result<()> {
-        self.expect_args(2, "-")?;
+    /// Pops a value, dereferences it, takes it as a procedure and prepends the
+    /// contained statements to the statement buffer.
+    fn eval(&mut self) -> Result<()> {
+        self.expect_args(1, "eval")?;
 
-        let (b, a) = (self.pop()?, self.pop()?);
-        let s = (self.resolve(a)? - self.resolve(b)?)?;
+        let a = self.pop()?;
 
-        self.push(s)
+        let procedure = match self.resolve(a)? {
+            Value::Procedure(s) => Ok(s),
+            v => Err(format!("Can't evaluate {v}"))
+        }?;
+
+        self.prepend_statements(&procedure.0);
+
+        Ok(())
     }
 
-    fn mul(&mut self) -> Result<()> {
-        self.expect_args(2, "*")?;
+    fn println(&mut self) -> Result<()> {
+        self.expect_args(1, "println")?;
 
-        let (b, a) = (self.pop()?, self.pop()?);
-        let s = (self.resolve(a)? * self.resolve(b)?)?;
+        match self.pop()? {
+            Value::String(s) => println!("{s}"),
+            v => println!("{v}")
+        }
 
-        self.push(s)
+        Ok(())
     }
 
-    fn div(&mut self) -> Result<()> {
-        self.expect_args(2, "/")?;
+    fn evaluate_if(&mut self) -> Result<()> {
+        self.expect_args(3, "?")?;
 
-        let (b, a) = (self.pop()?, self.pop()?);
+        let (esle, then, cond) = (self.pop()?, self.pop()?, self.pop()?);
+        let t = if cond == Value::Bool(true) { then } else { esle };
 
-        self.push((self.resolve(a)? / self.resolve(b)?)?)
+        match t {
+            Value::Procedure(s) => {
+                self.prepend_statements(&s.0);
+                Ok(())
+            },
+            _ => Err(format!("Can't evaluate {t}"))
+        }
+    }
+
+    fn def(&mut self) -> Result<()> {
+        self.expect_args(2, "def")?;
+
+        let (value, name) = (self.pop()?, self.pop()?);
+
+        if let Value::Identifier(s) = name {
+            self.definitions.insert(s, value);
+            Ok(())
+        } else {
+            Err(format!("Expected string for definition, got {name}"))
+        }
     }
 
     fn resolve(&self, value: Value) -> Result<Value> {
@@ -282,17 +310,6 @@ impl Interpreter {
     fn pop(&mut self) -> Result<Value> {
         self.expect_args(1, "pop")?;
         Ok(self.stack.pop().unwrap())
-    }
-
-    fn println(&mut self) -> Result<()> {
-        self.expect_args(1, "println")?;
-
-        match self.pop()? {
-            Value::String(s) => println!("{s}"),
-            v => println!("{v}")
-        }
-
-        Ok(())
     }
 
     fn expect_args(&self, args: usize, name: &str) -> Result<()> {
