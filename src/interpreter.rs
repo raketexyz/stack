@@ -84,6 +84,7 @@ impl Interpreter {
             Builtin::Println => self.println(),
             Builtin::If => self.evaluate_if(),
             Builtin::Def => self.def(),
+            Builtin::Nth => self.nth(),
         }
     }
 
@@ -288,6 +289,22 @@ impl Interpreter {
             Ok(())
         } else {
             Err(format!("Expected string for definition, got {name}"))
+        }
+    }
+
+    fn nth(&mut self) -> Result<()> {
+        self.expect_args(2, "nth")?;
+
+        let (b, a) = (self.pop()?, self.pop()?);
+
+        match (self.resolve(a)?, self.resolve(b)?) {
+            (Value::Number(n), Value::List(s)) if n.fract() == 0.0 => {
+                match s.get(n as usize) {
+                    Some(v) => self.push(v.clone()),
+                    None => Err(format!("Index {n} out of bounds"))
+                }
+            }
+            (a, b) => Err(format!("Can't index {b} by {a}"))
         }
     }
 

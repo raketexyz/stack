@@ -134,6 +134,9 @@ pub enum Builtin {
     If,
     /// Define the second to top item (an identifier) as the top item.
     Def,
+    /// Extract the nth item from a list.
+    /// ( n list -- item )
+    Nth,
 }
 
 impl Builtin {
@@ -159,6 +162,7 @@ impl Builtin {
             Self::Println => "println",
             Self::If => "?",
             Self::Def => "def",
+            Self::Nth => "nth",
         }
     }
 }
