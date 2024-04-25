@@ -104,16 +104,16 @@ impl Interpreter {
 
         match t {
             Value::Procedure(s) => {
-                self.prepend_statements(s.0);
+                self.prepend_statements(&s.0);
                 Ok(())
             },
             _ => Err(format!("Can't evaluate {t}"))
         }
     }
 
-    fn prepend_statements(&mut self, statements: Box<[Statement]>) {
+    fn prepend_statements(&mut self, statements: &[Statement]) {
         self.statements = VecDeque::from_iter(
-            statements.to_vec().into_iter().chain(self.statements.iter().cloned())
+            statements.iter().cloned().chain(self.statements.iter().cloned())
         );
     }
 
@@ -188,7 +188,7 @@ impl Interpreter {
             v => Err(format!("Can't evaluate {v}"))
         }?;
 
-        self.prepend_statements(procedure.0);
+        self.prepend_statements(&procedure.0);
 
         Ok(())
     }
