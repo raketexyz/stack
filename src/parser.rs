@@ -81,11 +81,12 @@ pub fn builtin(input: &str) -> IResult<&str, Builtin> {
         value(Builtin::Lt, tag("<")),
         value(Builtin::Ge, tag(">=")),
         value(Builtin::Gt, tag(">")),
-        value(Builtin::Dup, tag("dup")),
         value(Builtin::Swap, tag("swap")),
         value(Builtin::Drop, tag("drop")),
         value(Builtin::Over, tag("over")),
         value(Builtin::Eval, tag("eval")),
+        value(Builtin::Dupd, tag("dupd")),
+        value(Builtin::Dup, tag("dup")),
         value(Builtin::Println, tag("println")),
         value(Builtin::Def, tag("def")),
         value(Builtin::If, tag("?")),
@@ -152,6 +153,7 @@ mod tests {
         assert_eq!(builtin("swap"), Ok(("", Builtin::Swap)));
         assert_eq!(builtin("drop"), Ok(("", Builtin::Drop)));
         assert_eq!(builtin("over"), Ok(("", Builtin::Over)));
+        assert_eq!(builtin("dupd"), Ok(("", Builtin::Dupd)));
         assert_eq!(builtin("eval"), Ok(("", Builtin::Eval)));
         assert_eq!(builtin("println"), Ok(("", Builtin::Println)));
         assert_eq!(builtin("?"), Ok(("", Builtin::If)));
