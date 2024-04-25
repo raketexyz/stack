@@ -112,7 +112,7 @@ pub fn string(input: &str) -> IResult<&str, &str> {
 
 #[cfg(test)]
 mod tests {
-    use crate::{parser::statements, Expression, Literal, Statement};
+    use crate::{builtin, parser::statements, Builtin, Expression, Literal, Statement};
 
     #[test]
     fn statements_empty() {
@@ -133,5 +133,26 @@ mod tests {
     #[test]
     fn comment() {
         assert_eq!(statements("# hello\n"), Ok(("", [].into())))
+    }
+
+    #[test]
+    fn builtins() {
+        assert_eq!(builtin("+"), Ok(("", Builtin::Add)));
+        assert_eq!(builtin("-"), Ok(("", Builtin::Sub)));
+        assert_eq!(builtin("*"), Ok(("", Builtin::Mul)));
+        assert_eq!(builtin("/"), Ok(("", Builtin::Div)));
+        assert_eq!(builtin("="), Ok(("", Builtin::Eq)));
+        assert_eq!(builtin("!"), Ok(("", Builtin::Neg)));
+        assert_eq!(builtin("<"), Ok(("", Builtin::Lt)));
+        assert_eq!(builtin("<="), Ok(("", Builtin::Le)));
+        assert_eq!(builtin(">"), Ok(("", Builtin::Gt)));
+        assert_eq!(builtin(">="), Ok(("", Builtin::Ge)));
+        assert_eq!(builtin("dup"), Ok(("", Builtin::Dup)));
+        assert_eq!(builtin("swap"), Ok(("", Builtin::Swap)));
+        assert_eq!(builtin("drop"), Ok(("", Builtin::Drop)));
+        assert_eq!(builtin("eval"), Ok(("", Builtin::Eval)));
+        assert_eq!(builtin("println"), Ok(("", Builtin::Println)));
+        assert_eq!(builtin("?"), Ok(("", Builtin::If)));
+        assert_eq!(builtin("def"), Ok(("", Builtin::Def)));
     }
 }
