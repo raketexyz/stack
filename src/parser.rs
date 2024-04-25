@@ -107,7 +107,7 @@ pub fn bool(input: &str) -> IResult<&str, bool> {
 }
 
 pub fn string(input: &str) -> IResult<&str, &str> {
-    context("String", delimited(char('"'), is_not("\\\""), char('"')))(input)
+    context("String", delimited(char('"'), is_not("\\\""), cut(char('"'))))(input)
 }
 
 #[cfg(test)]
