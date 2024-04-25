@@ -101,6 +101,8 @@ pub enum Builtin {
     Swap,
     /// Drop (or "pop") the top element on the stack.
     Drop,
+    /// `x y -- x y x`
+    Over,
     /// Evaluate the top element on the stack.
     Eval,
     /// Print the top element on the stack and append a newline.
@@ -128,6 +130,7 @@ impl Builtin {
             Self::Dup => "dup",
             Self::Swap => "swap",
             Self::Drop => "drop",
+            Self::Over => "over",
             Self::Eval => "eval",
             Self::Println => "println",
             Self::If => "?",

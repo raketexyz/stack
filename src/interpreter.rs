@@ -76,6 +76,7 @@ impl Interpreter {
             Builtin::Dup => self.dup(),
             Builtin::Swap => self.swap(),
             Builtin::Drop => self.drop(),
+            Builtin::Over => self.over(),
             Builtin::Eval => self.eval(),
             Builtin::Println => self.println(),
             Builtin::If => self.evaluate_if(),
@@ -207,6 +208,12 @@ impl Interpreter {
         self.pop()?;
 
         Ok(())
+    }
+
+    fn over(&mut self) -> Result<()> {
+        self.expect_args(2, "over")?;
+
+        self.push(self.stack.iter().rev().nth(1).unwrap().clone())
     }
 
     fn add(&mut self) -> Result<()> {
