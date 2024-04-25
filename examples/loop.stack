@@ -1,22 +1,20 @@
-# `<counter> <end> <procedure> loop`
+# ( start end proc -- )
 def loop {
-    # ( counter end proc -- proc counter end counter end )
+    # ( start end proc -- proc start end start end )
     rotr 2dup
-    = {
-        # ( proc counter end -- )
-        3drop
-    } {
-        # ( proc counter end -- counter end proc )
-        rotl
-        # ( counter end proc -- counter end proc )
+    < {  # ( start end -- ? )
+        rotl  # ( proc start end -- start end proc )
         dup eval
-        # ( counter end proc -- end proc (counter + 1) )
-        rotl 1 +
-        # ( end proc counter -- counter end proc )
-        rotr
-        loop
-    } ?
+        rotl 1 +  # ( start end proc -- end proc (start + 1) )
+        rotr  # ( end proc (start + 1) -- (start + 1) end proc )
+        loop # ( (start + 1) end proc -- )
+    } {
+        3drop  # ( proc start end -- )
+    } if
 }
 
-# print every number from 0 to 10
-0 10 { rotl dup println rotr } loop
+0 10 {
+    rotl  # ( start end proc -- end proc start )
+    dup println
+    rotr  # ( end proc start -- start end proc )
+} loop
