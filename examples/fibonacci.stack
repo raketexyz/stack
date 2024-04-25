@@ -1,28 +1,28 @@
 # a -- fib(a)
-fib {
+def fib {
     # Don't do anything for 1 (is it's own fibonacci number)
     dup 1 = {} {
         # Don't do anything for 0 (is it's own fibonacci number)
         dup 0 = {} {
             # a -- a fib(a - 1)
-            dup 1 - fib eval
+            dup 1 - fib
             # a fib(a - 1) -- fib(a - 1) fib(a - 2)
-            swap 2 - fib eval
+            swap 2 - fib
             # fib(a - 1) fib(a - 2) -- fib(a)
             +
         } ?
     } ?
-} def
+}
 
-loop {
+def loop {
     # Break (drop counter) if counter equals ten
     dup 10 = { drop } {
         # Print fib of counter
-        dup fib eval println
+        dup fib println
         # Call loop with incremented counter
-        1 + loop eval
+        1 + loop
     } ?
-} def
+}
 
 # Start loop with counter 0
-0 loop eval
+0 loop
