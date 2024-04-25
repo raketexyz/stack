@@ -14,6 +14,8 @@ pub enum Value {
     Procedure(Procedure),
     /// An identifier.
     Identifier(String),
+    /// A list.
+    List(Box<[Value]>),
 }
 
 impl Add for Value {
@@ -79,6 +81,19 @@ impl Display for Value {
             Self::String(s) => write!(f, "{s:?}"),
             Self::Procedure(s) => write!(f, "{s}"),
             Self::Identifier(s) => write!(f, "Identifier<{s:?}>"),
+            Self::List(s) => {
+                write!(f, "[")?;
+
+                for x in s.iter() {
+                    write!(f, " {x}")?;
+                }
+
+                if !s.is_empty() {
+                    write!(f, " ")?;
+                }
+
+                write!(f, "]")
+            }
         }
     }
 }
@@ -99,6 +114,8 @@ impl From<Expression> for Value {
             Expression::Literal(s) => s.into(),
             Expression::Procedure(s) => Self::Procedure(s),
             Expression::Identifier(s) => Self::Identifier(s),
+            Expression::List(s) =>
+                Self::List(s.iter().cloned().map(Into::into).collect()),
         }
     }
 }

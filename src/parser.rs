@@ -50,6 +50,7 @@ pub fn expression(input: &str) -> IResult<&str, Expression> {
     context("Expression", alt((
         literal.map(Expression::Literal),
         procedure.map(Expression::Procedure),
+        list.map(Expression::List),
         Parser::into(identifier).map(Expression::Identifier),
     )))(input)
 }
@@ -60,6 +61,16 @@ pub fn procedure(input: &str) -> IResult<&str, Procedure> {
         cut(Parser::into(statements).map(Procedure)),
         cut(char('}'))
     ))(input)
+}
+
+pub fn list(input: &str) -> IResult<&str, Box<[Expression]>> {
+    let items = delimited(
+        multispace0,
+        separated_list0(multispace1, expression),
+        multispace0
+    );
+
+    context("List", delimited(char('['), Parser::into(items), char(']')))(input)
 }
 
 pub fn statement(input: &str) -> IResult<&str, Statement> {
@@ -115,7 +126,7 @@ pub fn string(input: &str) -> IResult<&str, &str> {
 
 #[cfg(test)]
 mod tests {
-    use crate::{builtin, parser::statements, Builtin, Expression, Literal, Statement};
+    use crate::{builtin, expression, parser::statements, Builtin, Expression, Literal, Statement};
 
     #[test]
     fn statements_empty() {
@@ -160,5 +171,29 @@ mod tests {
         assert_eq!(builtin("println"), Ok(("", Builtin::Println)));
         assert_eq!(builtin("?"), Ok(("", Builtin::If)));
         assert_eq!(builtin("def"), Ok(("", Builtin::Def)));
+    }
+
+    #[test]
+    fn list() {
+        assert_eq!(expression("[1 2 3]"), Ok(("", Expression::List([
+            Expression::Literal(Literal::Number(1.0)),
+            Expression::Literal(Literal::Number(2.0)),
+            Expression::Literal(Literal::Number(3.0)),
+        ].into()))));
+        assert_eq!(expression("[1 2 3 ]"), Ok(("", Expression::List([
+            Expression::Literal(Literal::Number(1.0)),
+            Expression::Literal(Literal::Number(2.0)),
+            Expression::Literal(Literal::Number(3.0)),
+        ].into()))));
+        assert_eq!(expression("[ 1 2 3]"), Ok(("", Expression::List([
+            Expression::Literal(Literal::Number(1.0)),
+            Expression::Literal(Literal::Number(2.0)),
+            Expression::Literal(Literal::Number(3.0)),
+        ].into()))));
+        assert_eq!(expression("[ 1 2 3 ]"), Ok(("", Expression::List([
+            Expression::Literal(Literal::Number(1.0)),
+            Expression::Literal(Literal::Number(2.0)),
+            Expression::Literal(Literal::Number(3.0)),
+        ].into()))));
     }
 }

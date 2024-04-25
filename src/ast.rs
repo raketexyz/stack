@@ -29,6 +29,7 @@ pub enum Expression {
     Literal(Literal),
     Procedure(Procedure),
     Identifier(String),
+    List(Box<[Expression]>),
 }
 
 impl Display for Expression {
@@ -37,6 +38,19 @@ impl Display for Expression {
             Self::Literal(l) => write!(f, "{l}"),
             Self::Procedure(s) => write!(f, "{s}"),
             Self::Identifier(s) => write!(f, "{s}"),
+            Self::List(s) => {
+                write!(f, "[")?;
+
+                for x in s.iter() {
+                    write!(f, " {x}")?;
+                }
+
+                if !s.is_empty() {
+                    write!(f, " ")?;
+                }
+
+                write!(f, "]")
+            }
         }
     }
 }
