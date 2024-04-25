@@ -99,6 +99,7 @@ impl Interpreter {
             Builtin::Gt => self.gt(),
             Builtin::Ge => self.ge(),
             Builtin::Dup => self.dup(),
+            Builtin::Dup2 => self.dup2(),
             Builtin::Swap => self.swap(),
             Builtin::Drop => self.drop(),
             Builtin::Drop2 => self.drop2(),
@@ -112,7 +113,6 @@ impl Interpreter {
             Builtin::Println => self.println(),
             Builtin::If => self.evaluate_if(),
             Builtin::Nth => self.nth(),
-            Builtin::Dup2 => self.dup2(),
         }
     }
 

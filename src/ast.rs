@@ -167,6 +167,7 @@ impl Builtin {
             Self::Gt => ">",
             Self::Ge => ">=",
             Self::Dup => "dup",
+            Self::Dup2 => "2dup",
             Self::Swap => "swap",
             Self::Drop => "drop",
             Self::Drop2 => "2drop",
@@ -180,7 +181,6 @@ impl Builtin {
             Self::Println => "println",
             Self::If => "if",
             Self::Nth => "nth",
-            Self::Dup2 => "2dup",
         }
     }
 }
