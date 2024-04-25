@@ -12,6 +12,11 @@ pub enum Statement {
     Expression(Expression),
     Builtin(Builtin),
     Value(Value),
+    Definition {
+        identifier: String,
+        procedure: Procedure,
+    },
+    Word(String),
 }
 
 impl Display for Statement {
@@ -20,6 +25,9 @@ impl Display for Statement {
             Self::Expression(s) => write!(f, "{s}"),
             Self::Builtin(s) => write!(f, "{s}"),
             Self::Value(v) => write!(f, "{v}"),
+            Self::Definition { identifier, procedure } =>
+                write!(f, "def {identifier} {procedure:#}"),
+            Self::Word(s) => write!(f, "{s}"),
         }
     }
 }
@@ -28,7 +36,6 @@ impl Display for Statement {
 pub enum Expression {
     Literal(Literal),
     Procedure(Procedure),
-    Identifier(String),
     List(Box<[Expression]>),
 }
 
@@ -37,7 +44,6 @@ impl Display for Expression {
         match self {
             Self::Literal(l) => write!(f, "{l}"),
             Self::Procedure(s) => write!(f, "{s}"),
-            Self::Identifier(s) => write!(f, "{s}"),
             Self::List(s) => {
                 write!(f, "[")?;
 
@@ -132,8 +138,6 @@ pub enum Builtin {
     /// Evaluate the second to top item on the stack if the third is true, else
     /// the top item.
     If,
-    /// Define the second to top item (an identifier) as the top item.
-    Def,
     /// Extract the nth item from a list.
     /// ( n list -- item )
     Nth,
@@ -161,7 +165,6 @@ impl Builtin {
             Self::Eval => "eval",
             Self::Println => "println",
             Self::If => "?",
-            Self::Def => "def",
             Self::Nth => "nth",
         }
     }

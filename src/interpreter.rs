@@ -7,7 +7,7 @@ type Result<A> = std::result::Result<A, String>;
 pub struct Interpreter {
     pub stack: Vec<Value>,
     pub statements: VecDeque<Statement>,
-    pub definitions: HashMap<String, Value>,
+    pub definitions: HashMap<String, Procedure>,
     pub verbose: bool,
 }
 
@@ -49,11 +49,35 @@ impl Interpreter {
         Ok(())
     }
 
+    fn def(&mut self, identifier: String, procedure: Procedure) -> Result<()> {
+        self.definitions.insert(identifier, procedure);
+
+        Ok(())
+    }
+
+    fn word(&mut self, word: &str) -> Result<()> {
+        let p = self.resolve(word)?.clone();
+
+        self.prepend_statements(&p.0);
+
+        Ok(())
+    }
+
     fn statement(&mut self, statement: Statement) -> Result<()> {
         match statement {
             Statement::Expression(e) => self.push(self.evaluate_expression(e)?),
             Statement::Builtin(b) => self.evaluate_builtin(b),
             Statement::Value(v) => self.push(v),
+            Statement::Definition { identifier, procedure } =>
+                self.def(identifier, procedure),
+            Statement::Word(w) => self.word(&w),
+        }
+    }
+
+    fn resolve(&self, identifier: &str) -> Result<&Procedure> {
+        match self.definitions.get(identifier) {
+            Some(p) => Ok(p),
+            None => Err(format!("Couldn't resolve identifier {identifier:?}"))
         }
     }
 
@@ -83,7 +107,6 @@ impl Interpreter {
             Builtin::Eval => self.eval(),
             Builtin::Println => self.println(),
             Builtin::If => self.evaluate_if(),
-            Builtin::Def => self.def(),
             Builtin::Nth => self.nth(),
         }
     }
@@ -98,7 +121,7 @@ impl Interpreter {
         self.expect_args(2, "+")?;
 
         let (b, a) = (self.pop()?, self.pop()?);
-        let s = (self.resolve(a)? + self.resolve(b)?)?;
+        let s = (a + b)?;
 
         self.push(s)
     }
@@ -107,7 +130,7 @@ impl Interpreter {
         self.expect_args(2, "-")?;
 
         let (b, a) = (self.pop()?, self.pop()?);
-        let s = (self.resolve(a)? - self.resolve(b)?)?;
+        let s = (a - b)?;
 
         self.push(s)
     }
@@ -116,7 +139,7 @@ impl Interpreter {
         self.expect_args(2, "*")?;
 
         let (b, a) = (self.pop()?, self.pop()?);
-        let s = (self.resolve(a)? * self.resolve(b)?)?;
+        let s = (a * b)?;
 
         self.push(s)
     }
@@ -126,14 +149,14 @@ impl Interpreter {
 
         let (b, a) = (self.pop()?, self.pop()?);
 
-        self.push((self.resolve(a)? / self.resolve(b)?)?)
+        self.push((a / b)?)
     }
 
     fn eq(&mut self) -> Result<()> {
         self.expect_args(2, "=")?;
 
         let (b, a) = (self.pop()?, self.pop()?);
-        let s = self.resolve(a)? == self.resolve(b)?;
+        let s = a == b;
 
         self.push(Value::Bool(s))
     }
@@ -143,7 +166,7 @@ impl Interpreter {
 
         let a = self.pop()?;
 
-        self.push((!self.resolve(a)?)?)
+        self.push((!a)?)
     }
 
     fn lt(&mut self) -> Result<()> {
@@ -241,9 +264,7 @@ impl Interpreter {
     fn eval(&mut self) -> Result<()> {
         self.expect_args(1, "eval")?;
 
-        let a = self.pop()?;
-
-        let procedure = match self.resolve(a)? {
+        let procedure = match self.pop()? {
             Value::Procedure(s) => Ok(s),
             v => Err(format!("Can't evaluate {v}"))
         }?;
@@ -279,25 +300,12 @@ impl Interpreter {
         }
     }
 
-    fn def(&mut self) -> Result<()> {
-        self.expect_args(2, "def")?;
-
-        let (value, name) = (self.pop()?, self.pop()?);
-
-        if let Value::Identifier(s) = name {
-            self.definitions.insert(s, value);
-            Ok(())
-        } else {
-            Err(format!("Expected string for definition, got {name}"))
-        }
-    }
-
     fn nth(&mut self) -> Result<()> {
         self.expect_args(2, "nth")?;
 
         let (b, a) = (self.pop()?, self.pop()?);
 
-        match (self.resolve(a)?, self.resolve(b)?) {
+        match (a, b) {
             (Value::Number(n), Value::List(s)) if n.fract() == 0.0 => {
                 match s.get(n as usize) {
                     Some(v) => self.push(v.clone()),
@@ -305,16 +313,6 @@ impl Interpreter {
                 }
             }
             (a, b) => Err(format!("Can't index {b} by {a}"))
-        }
-    }
-
-    fn resolve(&self, value: Value) -> Result<Value> {
-        match value {
-            Value::Identifier(s) => match self.definitions.get(&s) {
-                Some(v) => self.resolve(v.clone()),
-                None => Err(format!("Couldn't resolve identifier {s:?}"))
-            }
-            v => Ok(v)
         }
     }
 

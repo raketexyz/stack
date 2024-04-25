@@ -51,7 +51,6 @@ pub fn expression(input: &str) -> IResult<&str, Expression> {
         literal.map(Expression::Literal),
         procedure.map(Expression::Procedure),
         list.map(Expression::List),
-        Parser::into(identifier).map(Expression::Identifier),
     )))(input)
 }
 
@@ -73,9 +72,21 @@ pub fn list(input: &str) -> IResult<&str, Box<[Expression]>> {
     context("List", delimited(char('['), Parser::into(items), char(']')))(input)
 }
 
+pub fn definition(input: &str) -> IResult<&str, Statement> {
+    context("Definition", preceded(
+        tag("def"),
+        cut(pair(
+            Parser::into(preceded(multispace1, identifier)),
+            preceded(multispace0, procedure)
+        )),
+    )).map(|(identifier, procedure)| Statement::Definition { identifier, procedure }).parse(input)
+}
+
 pub fn statement(input: &str) -> IResult<&str, Statement> {
     context("Statement", alt((
+        definition,
         builtin.map(Statement::Builtin),
+        Parser::into(identifier).map(Statement::Word),
         expression.map(Statement::Expression),
     )))(input)
 }
@@ -100,7 +111,6 @@ pub fn builtin(input: &str) -> IResult<&str, Builtin> {
         value(Builtin::Dup, tag("dup")),
         value(Builtin::Keep, tag("keep")),
         value(Builtin::Println, tag("println")),
-        value(Builtin::Def, tag("def")),
         value(Builtin::If, tag("?")),
         value(Builtin::Nth, tag("nth")),
     )))(input)
@@ -127,7 +137,7 @@ pub fn string(input: &str) -> IResult<&str, &str> {
 
 #[cfg(test)]
 mod tests {
-    use crate::{builtin, expression, parser::statements, Builtin, Expression, Literal, Statement};
+    use crate::{builtin, definition, expression, parser::statements, Builtin, Expression, Literal, Procedure, Statement};
 
     #[test]
     fn statements_empty() {
@@ -171,7 +181,6 @@ mod tests {
         assert_eq!(builtin("eval"), Ok(("", Builtin::Eval)));
         assert_eq!(builtin("println"), Ok(("", Builtin::Println)));
         assert_eq!(builtin("?"), Ok(("", Builtin::If)));
-        assert_eq!(builtin("def"), Ok(("", Builtin::Def)));
         assert_eq!(builtin("nth"), Ok(("", Builtin::Nth)));
     }
 
@@ -197,5 +206,13 @@ mod tests {
             Expression::Literal(Literal::Number(2.0)),
             Expression::Literal(Literal::Number(3.0)),
         ].into()))));
+    }
+
+    #[test]
+    fn definitions() {
+        assert_eq!(definition("def inc { 1 + }"), Ok(("", Statement::Definition {
+            identifier: "inc".into(),
+            procedure: Procedure([Statement::Expression(Expression::Literal(Literal::Number(1.0))), Statement::Builtin(Builtin::Add)].into())
+        })));
     }
 }
