@@ -105,6 +105,8 @@ impl Interpreter {
             Builtin::Drop3 => self.drop3(),
             Builtin::Over => self.over(),
             Builtin::Dupd => self.dupd(),
+            Builtin::Rotl => self.rotl(),
+            Builtin::Rotr => self.rotr(),
             Builtin::Keep => self.keep(),
             Builtin::Eval => self.eval(),
             Builtin::Println => self.println(),
@@ -259,6 +261,24 @@ impl Interpreter {
             self.stack.len() - 1,
             self.stack.iter().rev().nth(1).unwrap().clone()
         );
+
+        Ok(())
+    }
+
+    fn rotl(&mut self) -> Result<()> {
+        self.expect_args(3, "rotl")?;
+
+        let x = self.stack.remove(self.stack.len() - 3);
+
+        self.push(x)
+    }
+
+    fn rotr(&mut self) -> Result<()> {
+        self.expect_args(3, "rotr")?;
+
+        let z = self.pop()?;
+
+        self.stack.insert(self.stack.len() - 2, z);
 
         Ok(())
     }

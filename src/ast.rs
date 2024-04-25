@@ -135,6 +135,10 @@ pub enum Builtin {
     Over,
     /// `x y -- x x y`
     Dupd,
+    /// Rotates the top three elements of the stack left.
+    Rotl,
+    /// Rotates the top three elements of the stack right.
+    Rotr,
     /// Evaluate a procedure and restore the top element on the stack.
     Keep,
     /// Evaluate the top element on the stack.
@@ -169,6 +173,8 @@ impl Builtin {
             Self::Drop3 => "3drop",
             Self::Over => "over",
             Self::Dupd => "dupd",
+            Self::Rotl => "rotl",
+            Self::Rotr => "rotr",
             Self::Keep => "keep",
             Self::Eval => "eval",
             Self::Println => "println",
