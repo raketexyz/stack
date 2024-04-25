@@ -121,6 +121,8 @@ pub enum Builtin {
     Ge,
     /// Duplicate the top element on the stack.
     Dup,
+    /// Duplicates the top two elements on the stack.
+    Dup2,
     /// Swap the top two elements on the stack.
     Swap,
     /// Drop (or "pop") the top element on the stack.
@@ -166,6 +168,7 @@ impl Builtin {
             Self::Println => "println",
             Self::If => "?",
             Self::Nth => "nth",
+            Self::Dup2 => "2dup",
         }
     }
 }

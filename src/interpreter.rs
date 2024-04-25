@@ -108,6 +108,7 @@ impl Interpreter {
             Builtin::Println => self.println(),
             Builtin::If => self.evaluate_if(),
             Builtin::Nth => self.nth(),
+            Builtin::Dup2 => self.dup2(),
         }
     }
 
@@ -314,6 +315,14 @@ impl Interpreter {
             }
             (a, b) => Err(format!("Can't index {b} by {a}"))
         }
+    }
+
+    fn dup2(&mut self) -> Result<()> {
+        self.expect_args(2, "2dup")?;
+
+        self.stack.extend_from_within(self.stack.len() - 2..);
+
+        Ok(())
     }
 
     fn push(&mut self, value: Value) -> Result<()> {
