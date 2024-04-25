@@ -33,16 +33,16 @@ impl Interpreter {
 
     fn run_statements(&mut self) -> Result<()> {
         while let Some(statement) = self.statements.pop_front() {
-            if self.verbose {
-                println!("DEBUG: Executing {statement}")
-            }
             self.statement(statement)?;
+
             if self.verbose {
                 println!(
-                    "DEBUG: Stack: {}",
+                    "DEBUG: Stack: {}\nDEBUG: Statements: {}",
                     self.stack.iter().map(ToString::to_string)
-                        .collect::<Vec<_>>().join(" ")
-                )
+                        .collect::<Vec<_>>().join(" "),
+                    self.statements.iter().map(ToString::to_string)
+                        .collect::<Vec<_>>().join(" "),
+                );
             }
         }
 
