@@ -127,6 +127,10 @@ pub enum Builtin {
     Swap,
     /// Drop (or "pop") the top element on the stack.
     Drop,
+    /// Drop the top two elements on the stack.
+    Drop2,
+    /// Drop the top three elements on the stack.
+    Drop3,
     /// `x y -- x y x`
     Over,
     /// `x y -- x x y`
@@ -161,6 +165,8 @@ impl Builtin {
             Self::Dup => "dup",
             Self::Swap => "swap",
             Self::Drop => "drop",
+            Self::Drop2 => "2drop",
+            Self::Drop3 => "3drop",
             Self::Over => "over",
             Self::Dupd => "dupd",
             Self::Keep => "keep",

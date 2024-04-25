@@ -101,6 +101,8 @@ impl Interpreter {
             Builtin::Dup => self.dup(),
             Builtin::Swap => self.swap(),
             Builtin::Drop => self.drop(),
+            Builtin::Drop2 => self.drop2(),
+            Builtin::Drop3 => self.drop3(),
             Builtin::Over => self.over(),
             Builtin::Dupd => self.dupd(),
             Builtin::Keep => self.keep(),
@@ -224,6 +226,22 @@ impl Interpreter {
         self.expect_args(1, "drop")?;
 
         self.pop()?;
+
+        Ok(())
+    }
+
+    fn drop2(&mut self) -> Result<()> {
+        self.expect_args(2, "2drop")?;
+
+        self.stack = self.stack.split_at(self.stack.len() - 2).0.to_vec();
+
+        Ok(())
+    }
+
+    fn drop3(&mut self) -> Result<()> {
+        self.expect_args(3, "3drop")?;
+
+        self.stack = self.stack.split_at(self.stack.len() - 3).0.to_vec();
 
         Ok(())
     }

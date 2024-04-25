@@ -110,6 +110,8 @@ pub fn builtin(input: &str) -> IResult<&str, Builtin> {
         value(Builtin::Gt, tag(">")),
         value(Builtin::Swap, tag("swap")),
         value(Builtin::Drop, tag("drop")),
+        value(Builtin::Drop2, tag("2drop")),
+        value(Builtin::Drop3, tag("3drop")),
         value(Builtin::Over, tag("over")),
         value(Builtin::Eval, tag("eval")),
         value(Builtin::Dupd, tag("dupd")),
@@ -117,9 +119,10 @@ pub fn builtin(input: &str) -> IResult<&str, Builtin> {
         value(Builtin::Dup2, tag("2dup")),
         value(Builtin::Keep, tag("keep")),
         value(Builtin::Println, tag("println")),
+    )).or(alt((
         value(Builtin::If, tag("if")),
         value(Builtin::Nth, tag("nth")),
-    )))(input)
+    ))))(input)
 }
 
 pub fn literal(input: &str) -> IResult<&str, Literal> {
@@ -189,6 +192,8 @@ mod tests {
         assert_eq!(builtin("2dup"), Ok(("", Builtin::Dup2)));
         assert_eq!(builtin("swap"), Ok(("", Builtin::Swap)));
         assert_eq!(builtin("drop"), Ok(("", Builtin::Drop)));
+        assert_eq!(builtin("2drop"), Ok(("", Builtin::Drop2)));
+        assert_eq!(builtin("3drop"), Ok(("", Builtin::Drop3)));
         assert_eq!(builtin("over"), Ok(("", Builtin::Over)));
         assert_eq!(builtin("dupd"), Ok(("", Builtin::Dupd)));
         assert_eq!(builtin("keep"), Ok(("", Builtin::Keep)));
