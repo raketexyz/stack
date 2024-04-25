@@ -79,7 +79,12 @@ pub fn definition(input: &str) -> IResult<&str, Statement> {
             Parser::into(preceded(multispace1, identifier)),
             preceded(multispace0, procedure)
         )),
-    )).map(|(identifier, procedure)| Statement::Definition { identifier, procedure }).parse(input)
+    ))
+        .map(|(identifier, procedure)| Statement::Definition {
+            identifier,
+            procedure,
+        })
+        .parse(input)
 }
 
 pub fn statement(input: &str) -> IResult<&str, Statement> {
@@ -133,12 +138,19 @@ pub fn bool(input: &str) -> IResult<&str, bool> {
 }
 
 pub fn string(input: &str) -> IResult<&str, &str> {
-    context("String", delimited(char('"'), is_not("\\\""), cut(char('"'))))(input)
+    context("String", delimited(
+        char('"'),
+        is_not("\\\""),
+        cut(char('"'))
+    ))(input)
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::{builtin, definition, expression, parser::statements, Builtin, Expression, Literal, Procedure, Statement};
+    use crate::{
+        builtin, definition, expression, parser::statements, Builtin,
+        Expression, Literal, Procedure, Statement,
+    };
 
     #[test]
     fn statements_empty() {
@@ -212,9 +224,17 @@ mod tests {
 
     #[test]
     fn definitions() {
-        assert_eq!(definition("def inc { 1 + }"), Ok(("", Statement::Definition {
-            identifier: "inc".into(),
-            procedure: Procedure([Statement::Expression(Expression::Literal(Literal::Number(1.0))), Statement::Builtin(Builtin::Add)].into())
-        })));
+        assert_eq!(definition("def inc { 1 + }"), Ok((
+            "",
+            Statement::Definition {
+                identifier: "inc".into(),
+                procedure: Procedure([
+                    Statement::Expression(
+                        Expression::Literal(Literal::Number(1.0))
+                    ),
+                    Statement::Builtin(Builtin::Add),
+                ].into())
+            })
+        ));
     }
 }
