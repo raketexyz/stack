@@ -16,6 +16,15 @@ pub fn run_repl(verbose: bool) {
     let mut interpreter = Interpreter::new(verbose);
     let mut input = String::new();
 
+    println!(
+        "{} v{}  Copyright (C) 2024  rakete
+This program is free software: you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.",
+        env!("CARGO_PKG_NAME"),
+        env!("CARGO_PKG_VERSION"),
+    );
     print!(">>> ");
 
     loop {
