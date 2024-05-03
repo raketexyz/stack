@@ -344,14 +344,24 @@ impl Interpreter {
 
         let (b, a) = (self.pop()?, self.pop()?);
 
-        match (a, b) {
-            (Value::Number(n), Value::List(s)) if n.fract() == 0.0 => {
-                match s.get(n as usize) {
-                    Some(v) => self.push(v.clone()),
-                    None => Err(format!("Index {n} out of bounds"))
-                }
-            }
-            (a, b) => Err(format!("Can't index {b} by {a}"))
+        let (n, list) = match (a, b) {
+            (Value::Number(n), Value::List(s)) if n.fract() == 0.0 => (n, s),
+            (a, b) => return Err(format!("Can't index {b} by {a}"))
+        };
+
+        if list.len() < n.abs() as usize {
+            return Err(format!("Index {n} out of bounds"))
+        }
+
+        let n = if n.is_sign_negative() {
+            list.len() - (n.abs() as usize)
+        } else {
+            n as usize
+        };
+
+        match list.get(n) {
+            Some(v) => self.push(v.clone()),
+            None => Err(format!("Index {n} out of bounds"))
         }
     }
 
